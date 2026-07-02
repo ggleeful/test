@@ -12,7 +12,7 @@ def consultar_dni():
     if not dni:
         return jsonify({"error": "Debe enviar el parámetro dni"}), 400
 
-    url = f"https://www.cuitonline.com/persona/dni/{dni}"
+    url = f"https://www.cuitonline.com/search/{dni}"
     response = requests.get(url)
 
     if response.status_code != 200:
