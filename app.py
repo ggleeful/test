@@ -7,12 +7,12 @@ app = Flask(__name__)
 @app.route("/dni")
 def consultar_dni():
     dni = request.args.get("dni")
-    debug = request.args.get("debug")  # nuevo parámetro opcional
+    debug = request.args.get("debug")
 
     if not dni:
         return jsonify({"error": "Debe enviar el parámetro dni"}), 400
 
-    url = f"https://www.cuitonline.com/search/{dni}"
+    url = f"https://www.cuitonline.com/persona/dni/{dni}"
     response = requests.get(url)
 
     if response.status_code != 200:
@@ -20,26 +20,24 @@ def consultar_dni():
 
     soup = BeautifulSoup(response.text, "html.parser")
 
-    nombre_tag = soup.find("h1")
-    cuit_tag = soup.find("div", class_="cuit")
+    # Extraer nombre y CUIT según el HTML que compartiste
+    nombre_tag = soup.find("h2", class_="denominacion")
+    cuit_tag = soup.find("span", class_="cuit")
 
     nombre = nombre_tag.text.strip() if nombre_tag else "No encontrado"
     cuit = cuit_tag.text.strip() if cuit_tag else "No encontrado"
 
-    # Si debug está activado, devolver también el HTML bruto
-    if debug == "true":
-        return jsonify({
-            "dni": dni,
-            "nombre": nombre,
-            "cuit": cuit,
-            "html_raw": response.text  # muestra todo el HTML obtenido
-        })
-
-    return jsonify({
+    resultado = {
         "dni": dni,
         "nombre": nombre,
         "cuit": cuit
-    })
+    }
+
+    # Si se pasa debug=true, incluir el HTML bruto
+    if debug == "true":
+        resultado["html_raw"] = response.text
+
+    return jsonify(resultado)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
